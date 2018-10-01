@@ -4,7 +4,7 @@ from flask import Blueprint, request
 from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
-from ..models.resources import Resources
+from test.models.resources import Resources
 from ..common import tools, exceptions
 
 resources_blueprint = Blueprint('resources', __name__)

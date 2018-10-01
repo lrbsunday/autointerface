@@ -21,14 +21,14 @@
     {{ rule['name'] }} = {{ get_param(rule, source) }}
     {% if rule['is_filter'] %}
     if {{ rule['name'] }} is not None:
-        filter_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }} == {{ rule['name'] }})
+        filter_conditions.append({{ rule | get_model_field(name | capitalize) }} == {{ rule['name'] }})
     {% endif %}
     {% if rule['is_sorter'] %}
     if {{ rule['name'] }} is not None:
         if {{ rule['name'] }} == 'desc':
-            sort_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }}.desc())
+            sort_conditions.append({{ rule | get_model_field(name | capitalize) }}.desc())
         else:
-            sort_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }})
+            sort_conditions.append({{ rule | get_model_field(name | capitalize) }})
     {% endif %}
 
 {% endmacro %}
@@ -37,7 +37,10 @@ from flask import Blueprint, request
 from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
-from ..models.{{ name }} import {{ name | capitalize }}
+from {{ project_name }}.models.{{ name }} import {{ name | capitalize }}
+{% for require in requires %}
+from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
+{% endfor %}
 from ..common import tools, exceptions
 
 {{ name }}_blueprint = Blueprint('{{ name }}', __name__)
@@ -53,6 +56,7 @@ def get_{{ name }}():
     {% set ns = namespace() %}
     {% set ns.has_page = False %}
     {% set ns.has_size = False %}
+    {% set ns.join_list = [] %}
     {% for rule in gets['params'] %}
         {{- interface_param(rule, 'request.args') -}}
         {% if rule.name == 'page' and rule.is_pager %}
@@ -61,8 +65,14 @@ def get_{{ name }}():
         {% if rule.name == 'size' and rule.is_pager %}
             {% set ns.has_size = True %}
         {% endif %}
+        {% if '.' in rule.model_field %}
+            {% do ns.join_list.append('join(' + rule.model_field | split('.') | index(0) + ')') %}
+        {% endif %}
     {% endfor %}
     rows = {{ name | capitalize }}.select()
+    {% if ns.join_list %}
+    rows = rows.{{ ns.join_list | unique | join('.') }}
+    {% endif %}
     if filter_conditions:
         rows = rows.where(*filter_conditions)
     if sort_conditions:
@@ -110,7 +120,7 @@ def create_{{ name }}():
 
     fields = {
     {% for rule in post['params'] %}
-        "{{ rule['model_name'] or rule['name'] }}": {{ get_param(rule, 'request_info') }},
+        "{{ rule['model_field'] or rule['name'] }}": {{ get_param(rule, 'request_info') }},
     {% endfor %}
     }
 
@@ -137,7 +147,7 @@ def create_or_update_{{ name }}(uid):
     fields = {}
     {% for rule in put['params'] %}
     if "{{ rule['name'] }}" in request_info:
-        fields["{{ rule['name'] or rule['model_name'] }}"] = {{ get_param(rule, 'request_info') }}
+        fields["{{ rule['name'] or rule['model_field'] }}"] = {{ get_param(rule, 'request_info') }}
     {% endfor %}
 
     q = {{ name | capitalize }}.update(**fields).where({{ name | capitalize }}.uid == uid)

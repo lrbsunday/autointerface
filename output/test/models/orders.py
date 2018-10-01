@@ -1,7 +1,7 @@
 
 from peewee import *
 from . import MyModel
-from .resources import Resources
+from test.models.resources import Resources
 
 
 class Orders(MyModel):

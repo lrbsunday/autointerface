@@ -1,4 +1,4 @@
-{% macro model_field(rule) %}
+{% macro define_model_field(rule) %}
     {# 类型 #}
     {% set field_type = rule['type'] | format_model_type %}
     {# 默认值 #}
@@ -36,11 +36,11 @@
 from peewee import *
 from . import MyModel
 {% for require in requires %}
-from .{{ require }} import {{ require | capitalize }}
+from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}
 
 
 class {{ name | capitalize }}(MyModel):
     {% for rule in rules %}
-        {{- model_field(rule) -}}
+        {{- define_model_field(rule) -}}
     {% endfor %}

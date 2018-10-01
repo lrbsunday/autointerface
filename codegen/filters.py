@@ -51,3 +51,19 @@ def format_model_type(vtype):
     else:
         logging.error("模型定义的类型%s不支持" % vtype)
         return 'unknown'
+
+
+def get_model_field(rule, name):
+    model_field = rule.get('model_field') or rule.get('name', '')
+    if '.' in model_field:
+        return model_field
+    else:
+        return name + '.' + model_field
+
+
+def split(value, split_char):
+    return value.split(split_char)
+
+
+def index(value, i):
+    return value[i]

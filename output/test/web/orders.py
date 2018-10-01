@@ -4,7 +4,8 @@ from flask import Blueprint, request
 from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
-from ..models.orders import Orders
+from test.models.orders import Orders
+from test.models.resources import Resources
 from ..common import tools, exceptions
 
 orders_blueprint = Blueprint('orders', __name__)
@@ -34,7 +35,21 @@ def get_orders():
         else:
             sort_conditions.append(Orders.name)
 
+    resource_name = tools.get_params(
+        request.args, 'resource_name', need=False, vtype=str)
+    if resource_name is not None:
+        filter_conditions.append(Resources.name == resource_name)
+
+    s_resource_name = tools.get_params(
+        request.args, 's_resource_name', need=False, vtype=str, choices=['desc', 'asc'])
+    if s_resource_name is not None:
+        if s_resource_name == 'desc':
+            sort_conditions.append(Resources.name.desc())
+        else:
+            sort_conditions.append(Resources.name)
+
     rows = Orders.select()
+    rows = rows.join(Resources)
     if filter_conditions:
         rows = rows.where(*filter_conditions)
     if sort_conditions:

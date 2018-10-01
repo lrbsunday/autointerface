@@ -52,7 +52,7 @@ render('interface.html', WORD_DIR + '/output/interface.py',
                "is_pager": False,
            }, {
                "name": "s_name",
-               "model_name": "name",
+               "model_field": "name",
                "help_text": "按订单名称排序",
                "need": False,
                "type": "string",
@@ -73,7 +73,7 @@ render('interface.html', WORD_DIR + '/output/interface.py',
                "type": "string"
            }, {
                "name": "state",
-               "model_name": "state",
+               "model_field": "state",
                "help_text": "订单状态",
                "need": False,
                "default": 1,
@@ -88,7 +88,7 @@ render('interface.html', WORD_DIR + '/output/interface.py',
                "type": "string"
            }, {
                "name": "state",
-               "model_name": "state",
+               "model_field": "state",
                "desc": "订单状态",
                "need": False,
                "default": 1,
