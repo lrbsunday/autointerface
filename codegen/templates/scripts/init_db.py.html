@@ -1,0 +1,9 @@
+from {{ project_name }}.models import database
+{% set model_list = [] %}
+{% for model in models %}
+from {{ project_name }}.models.{{ model.name }} import {{ model.name | capitalize }}
+{% do model_list.append(model.name | capitalize) %}
+{% endfor %}
+
+database.drop_tables([{{ model_list | join(', ') }}])
+database.create_tables([{{ model_list | join(', ') }}])

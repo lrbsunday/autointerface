@@ -1,0 +1,4 @@
+peewee
+flask
+pymysql
+click

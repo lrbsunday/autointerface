@@ -1,0 +1,177 @@
+{% macro get_param(rule, source) -%}
+    {% set arg_list = [source, '\'' ~ rule['name'] ~ '\''] %}
+    {% for key, value in rule.items() %}
+        {% if key == 'default' %}
+            {% do arg_list.append('default=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'need' %}
+            {% do arg_list.append('need=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'type' %}
+            {% do arg_list.append('vtype=' ~ value | format_param_type) %}
+        {% endif %}
+        {% if key == 'choices' %}
+            {% do arg_list.append('choices=' ~ value | format_value) %}
+        {% endif %}
+    {% endfor -%}
+    tools.get_params({{ arg_list | join(', ') }})
+{%- endmacro %}
+
+{% macro interface_param(rule, source) %}
+    {{ rule['name'] }} = {{ get_param(rule, source) }}
+    {% if rule['is_filter'] %}
+    if {{ rule['name'] }} is not None:
+        filter_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }} == {{ rule['name'] }})
+    {% endif %}
+    {% if rule['is_sorter'] %}
+    if {{ rule['name'] }} is not None:
+        if {{ rule['name'] }} == 'desc':
+            sort_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }}.desc())
+        else:
+            sort_conditions.append({{ name | capitalize }}.{{ rule['model_name'] or rule['name'] }})
+    {% endif %}
+
+{% endmacro %}
+
+from flask import Blueprint, request
+from peewee import DoesNotExist, IntegrityError
+from playhouse.shortcuts import model_to_dict
+
+from ..models.{{ name }} import {{ name | capitalize }}
+from ..common import tools, exceptions
+
+{{ name }}_blueprint = Blueprint('{{ name }}', __name__)
+
+
+{% if gets is defined %}
+@{{ name }}_blueprint.route('/{{ name }}', methods=['GET'])
+@tools.request_decorator()
+def get_{{ name }}():
+    filter_conditions = []
+    sort_conditions = []
+
+    {% set ns = namespace() %}
+    {% set ns.has_page = False %}
+    {% set ns.has_size = False %}
+    {% for rule in gets['params'] %}
+        {{- interface_param(rule, 'request.args') -}}
+        {% if rule.name == 'page' and rule.is_pager %}
+            {% set ns.has_page = True %}
+        {% endif %}
+        {% if rule.name == 'size' and rule.is_pager %}
+            {% set ns.has_size = True %}
+        {% endif %}
+    {% endfor %}
+    rows = {{ name | capitalize }}.select()
+    if filter_conditions:
+        rows = rows.where(*filter_conditions)
+    if sort_conditions:
+        rows = rows.order_by(*sort_conditions)
+
+    {% if ns.has_page and ns.has_size %}
+    rows = rows.paginate(page=page, paginate_by=size)
+    {% endif %}
+    {% set arg_list = ['row'] %}
+    {% if gets['recurse'] is defined %}
+        {% do arg_list.append('recurse=' ~ gets['recurse'] | format_value) %}
+    {% endif %}
+    {% if gets['backrefs'] is defined %}
+        {% do arg_list.append('backrefs=' ~ gets['backrefs'] | format_value) %}
+    {% endif %}
+    return [model_to_dict({{ arg_list | join(', ') }}) for row in rows]
+{% endif %}
+
+{% if get is defined %}
+@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['GET'])
+@tools.request_decorator()
+def get_one_{{ name }}(uid):
+    uid = tools.check_params("uid", uid, vtype=int)
+
+    try:
+        row = {{ name | capitalize }}.select().where({{ name | capitalize }}.uid == uid).get()
+    except DoesNotExist:
+        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+
+    {% set arg_list = ['row'] %}
+    {% if get['recurse'] is defined %}
+        {% do arg_list.append('recurse=' ~ get['recurse'] | format_value) %}
+    {% endif %}
+    {% if get['backrefs'] is defined %}
+        {% do arg_list.append('backrefs=' ~ get['backrefs'] | format_value) %}
+    {% endif %}
+    return model_to_dict({{ arg_list | join(', ') }})
+{% endif %}
+
+{% if post is defined %}
+@{{ name }}_blueprint.route('/{{ name }}', methods=['POST'])
+@tools.request_decorator()
+def create_{{ name }}():
+    request_info = request.get_json()
+
+    fields = {
+    {% for rule in post['params'] %}
+        "{{ rule['model_name'] or rule['name'] }}": {{ get_param(rule, 'request_info') }},
+    {% endfor %}
+    }
+
+    try:
+        row = {{ name | capitalize }}.create(**fields)
+    except IntegrityError as e:
+        if e.args[0] == 1062:
+            raise exceptions.ResourceAlreadyExists(detail="创建{{ name_cn }}时，{{ name_cn }}已存在")
+        elif e.args[0] in (1451, 1452):
+            raise exceptions.ForeignConstraintException(detail="创建{{ name_cn }}时，外键约束错误")
+        else:
+            raise exceptions.IntegrityError()
+
+    return {"id": row.uid}
+{% endif %}
+
+{% if put is defined %}
+@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['PUT'])
+@tools.request_decorator()
+def create_or_update_{{ name }}(uid):
+    uid = tools.check_params("uid", uid, vtype=int)
+    request_info = request.get_json()
+
+    fields = {}
+    {% for rule in put['params'] %}
+    if "{{ rule['name'] }}" in request_info:
+        fields["{{ rule['name'] or rule['model_name'] }}"] = {{ get_param(rule, 'request_info') }}
+    {% endfor %}
+
+    q = {{ name | capitalize }}.update(**fields).where({{ name | capitalize }}.uid == uid)
+    try:
+        exec_code = q.execute()
+    except IntegrityError as e:
+        if e.args[0] == 1062:
+            raise exceptions.ResourceAlreadyExists(detail="更新{{ name_cn }}时，{{ name_cn }}已存在")
+        elif e.args[0] in (1451, 1452):
+            raise exceptions.ForeignConstraintException(detail="更新{{ name_cn }}时，外键约束错误")
+        else:
+            raise exceptions.IntegrityError()
+    if exec_code == 0:
+        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+
+    return {}
+{% endif %}
+
+{% if delete is defined %}
+@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['DELETE'])
+@tools.request_decorator()
+def delete_{{ name }}(uid):
+    uid = tools.check_params("uid", uid, vtype=int)
+
+    q = {{ name | capitalize }}.delete().where({{ name | capitalize }}.uid == uid)
+    try:
+        exec_code = q.execute()
+    except IntegrityError as e:
+        if e.args[0] in (1451, 1452):
+            raise exceptions.ForeignConstraintException(detail="删除资源时，外键约束错误")
+        else:
+            raise exceptions.IntegrityError()
+    if exec_code == 0:
+        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+
+    return {}
+{% endif %}

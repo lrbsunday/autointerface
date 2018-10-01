@@ -1,0 +1,46 @@
+{% macro model_field(rule) %}
+    {# 类型 #}
+    {% set field_type = rule['type'] | format_model_type %}
+    {# 默认值 #}
+    {% set arg_list = [] %}
+    {% for key, value in rule.items() %}
+        {% if key == 'default' %}
+            {% do arg_list.append('default=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'null' %}
+            {% do arg_list.append('null=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'index' %}
+            {% do arg_list.append('index=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'unique' %}
+            {% do arg_list.append('unique=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'help_text' %}
+            {% do arg_list.append('help_text=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'model' %}
+            {% do arg_list.append(value | capitalize) %}
+        {% endif %}
+        {% if key == 'backref' %}
+            {% do arg_list.append('backref=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'on_delete' %}
+            {% do arg_list.append('on_delete=' ~ value | format_value) %}
+        {% endif %}
+    {% endfor %}
+    {# 代码 #}
+    {{ rule['name'] }} = {{ field_type }}({{ arg_list | join(', ') }})
+{% endmacro %}
+
+from peewee import *
+from . import MyModel
+{% for require in requires %}
+from .{{ require }} import {{ require | capitalize }}
+{% endfor %}
+
+
+class {{ name | capitalize }}(MyModel):
+    {% for rule in rules %}
+        {{- model_field(rule) -}}
+    {% endfor %}
