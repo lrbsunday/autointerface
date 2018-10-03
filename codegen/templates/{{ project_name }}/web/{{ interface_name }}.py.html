@@ -7,11 +7,17 @@
         {% if key == 'need' %}
             {% do arg_list.append('need=' ~ value | format_value) %}
         {% endif %}
-        {% if key == 'type' %}
+        {% if key == 'vtype' %}
             {% do arg_list.append('vtype=' ~ value | format_param_type) %}
         {% endif %}
         {% if key == 'choices' %}
             {% do arg_list.append('choices=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'min' %}
+            {% do arg_list.append('min=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'max' %}
+            {% do arg_list.append('max=' ~ value | format_value) %}
         {% endif %}
     {% endfor -%}
     tools.get_params({{ arg_list | join(', ') }})

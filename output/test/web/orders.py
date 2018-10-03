@@ -18,7 +18,7 @@ def get_orders():
     sort_conditions = []
 
     page = tools.get_params(request.args, 'page',
-                            need=False, default=1, vtype=int)
+                            need=False, default=1, min=1, max=3, vtype=int)
 
     size = tools.get_params(request.args, 'size',
                             need=False, default=10, vtype=int)
