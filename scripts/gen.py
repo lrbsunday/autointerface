@@ -77,6 +77,7 @@ config = {
                 "is_filter": True,
                 "is_sorter": False,
                 "is_pager": False,
+                "filter_op": "%"
             }, {
                 "name": "s_name",
                 "model_field": "name",
@@ -96,6 +97,7 @@ config = {
                 "is_filter": True,
                 "is_sorter": False,
                 "is_pager": False,
+                "filter_condition": "Resources.name.startswith(resource_name)"
             }, {
                 "name": "s_resource_name",
                 "model_field": "Resources.name",

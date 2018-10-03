@@ -23,11 +23,21 @@
     tools.get_params({{ arg_list | join(', ') }})
 {%- endmacro %}
 
+{% macro get_filter_condition(rule, interface_name) -%}
+    {% if rule.filter_op %}
+        {{ rule | get_model_field(interface_name | capitalize) }} {{ rule.filter_op }} {{ rule['name'] }}
+    {%- elif rule.filter_condition %}
+        {{ rule.filter_condition }}
+    {%- else %}
+        {{ rule | get_model_field(interface_name | capitalize) }} == {{ rule['name'] }}
+    {%- endif %}
+{%- endmacro %}
+
 {% macro interface_param(rule, source) %}
     {{ rule['name'] }} = {{ get_param(rule, source) }}
     {% if rule['is_filter'] %}
     if {{ rule['name'] }} is not None:
-        filter_conditions.append({{ rule | get_model_field(name | capitalize) }} == {{ rule['name'] }})
+        filter_conditions.append({{ get_filter_condition(rule, name) }})
     {% endif %}
     {% if rule['is_sorter'] %}
     if {{ rule['name'] }} is not None:

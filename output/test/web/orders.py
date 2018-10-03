@@ -25,7 +25,7 @@ def get_orders():
 
     name = tools.get_params(request.args, 'name', need=False, vtype=str)
     if name is not None:
-        filter_conditions.append(Orders.name == name)
+        filter_conditions.append(Orders.name % name)
 
     s_name = tools.get_params(request.args, 's_name',
                               need=False, vtype=str, choices=['desc', 'asc'])
@@ -38,7 +38,7 @@ def get_orders():
     resource_name = tools.get_params(
         request.args, 'resource_name', need=False, vtype=str)
     if resource_name is not None:
-        filter_conditions.append(Resources.name == resource_name)
+        filter_conditions.append(Resources.name.startswith(resource_name))
 
     s_resource_name = tools.get_params(
         request.args, 's_resource_name', need=False, vtype=str, choices=['desc', 'asc'])
