@@ -22,4 +22,4 @@ class Params(MyModel):
     filter_condition = CharField(
         help_text='过滤专用，表示过滤条件', null=True, unique=False, index=False)
     interface = ForeignKeyField(
-        Interfaces, help_text='接口外键', null=False, on_delete='CASCADE')
+        Interfaces, help_text='接口外键', null=False, on_delete='CASCADE', backref="params")

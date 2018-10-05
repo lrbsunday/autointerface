@@ -21,4 +21,4 @@ class Fields(MyModel):
     on_delete = CharField(
         help_text='外键专用，表示删除时的行为。CASCADE表示递归删除，参考peewee文档', null=True, unique=False, index=False)
     model = ForeignKeyField(Models, help_text='模型外键',
-                            null=False, on_delete='CASCADE')
+                            null=False, on_delete='CASCADE', backref="fields")

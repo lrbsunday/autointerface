@@ -1,4 +1,4 @@
-{% macro define_model_field(rule) %}
+{% macro define_model_field(rule, model_name) %}
     {# 类型 #}
     {% set field_type = rule['type'] | format_model_type %}
     {# 默认值 #}
@@ -11,9 +11,6 @@
     {% for key, value in rule.items() %}
         {% if key == 'model' %}
             {% continue %}
-        {% endif %}
-        {% if key == 'backref' %}
-            {% do arg_list.append('backref=' ~ value | format_value) %}
         {% endif %}
         {% if key == 'on_delete' %}
             {% do arg_list.append('on_delete=' ~ value | format_value) %}
@@ -34,6 +31,9 @@
             {% do arg_list.append('help_text=' ~ value | format_value) %}
         {% endif %}
     {% endfor %}
+    {% if rule['type'] == 'foreign' %}
+        {% do arg_list.append('backref="' ~ model_name ~ '"') %}
+    {% endif %}
     {# 代码 #}
     {{ rule['name'] }} = {{ field_type }}({{ arg_list | join(', ') }})
 {% endmacro %}
@@ -47,5 +47,5 @@ from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
 
 class {{ name | capitalize }}(MyModel):
     {% for rule in rules %}
-        {{- define_model_field(rule) -}}
+        {{- define_model_field(rule, name) -}}
     {% endfor %}

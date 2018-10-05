@@ -11,4 +11,4 @@ class Models(MyModel):
     description = TextField(help_text='描述信息', default='',
                             null=False, unique=False, index=False)
     project = ForeignKeyField(
-        Projects, help_text='项目外键', null=False, on_delete='CASCADE')
+        Projects, help_text='项目外键', null=False, on_delete='CASCADE', backref="models")
