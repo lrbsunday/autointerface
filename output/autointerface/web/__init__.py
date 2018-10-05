@@ -6,8 +6,11 @@ from werkzeug.exceptions import MethodNotAllowed
 
 from ..models import database
 from ..common import exceptions
-from .orders import orders_blueprint
-from .resources import resources_blueprint
+from .projects import projects_blueprint
+from .models import models_blueprint
+from .fields import fields_blueprint
+from .interfaces import interfaces_blueprint
+from .params import params_blueprint
 
 app = Flask(__name__)
 
@@ -57,5 +60,8 @@ def teardown_request(_):
         database.close()
 
 
-app.register_blueprint(orders_blueprint, url_prefix='/api/v1')
-app.register_blueprint(resources_blueprint, url_prefix='/api/v1')
+app.register_blueprint(projects_blueprint, url_prefix='/api/v1')
+app.register_blueprint(models_blueprint, url_prefix='/api/v1')
+app.register_blueprint(fields_blueprint, url_prefix='/api/v1')
+app.register_blueprint(interfaces_blueprint, url_prefix='/api/v1')
+app.register_blueprint(params_blueprint, url_prefix='/api/v1')

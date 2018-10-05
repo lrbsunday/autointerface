@@ -8,7 +8,7 @@ from codegen.filters import *
 env = Environment(
     loader=PackageLoader('codegen', 'templates'),
     autoescape=select_autoescape([]),
-    extensions=['jinja2.ext.do'],
+    extensions=['jinja2.ext.do', 'jinja2.ext.loopcontrols'],
     trim_blocks=True,
     lstrip_blocks=True
 )

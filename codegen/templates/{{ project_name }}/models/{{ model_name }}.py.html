@@ -4,6 +4,20 @@
     {# 默认值 #}
     {% set arg_list = [] %}
     {% for key, value in rule.items() %}
+        {% if key == 'model' %}
+            {% do arg_list.append(value | capitalize) %}
+        {% endif %}
+    {% endfor %}
+    {% for key, value in rule.items() %}
+        {% if key == 'model' %}
+            {% continue %}
+        {% endif %}
+        {% if key == 'backref' %}
+            {% do arg_list.append('backref=' ~ value | format_value) %}
+        {% endif %}
+        {% if key == 'on_delete' %}
+            {% do arg_list.append('on_delete=' ~ value | format_value) %}
+        {% endif %}
         {% if key == 'default' %}
             {% do arg_list.append('default=' ~ value | format_value) %}
         {% endif %}
@@ -16,17 +30,8 @@
         {% if key == 'unique' %}
             {% do arg_list.append('unique=' ~ value | format_value) %}
         {% endif %}
-        {% if key == 'help_text' %}
+        {% if key == 'description' %}
             {% do arg_list.append('help_text=' ~ value | format_value) %}
-        {% endif %}
-        {% if key == 'model' %}
-            {% do arg_list.append(value | capitalize) %}
-        {% endif %}
-        {% if key == 'backref' %}
-            {% do arg_list.append('backref=' ~ value | format_value) %}
-        {% endif %}
-        {% if key == 'on_delete' %}
-            {% do arg_list.append('on_delete=' ~ value | format_value) %}
         {% endif %}
     {% endfor %}
     {# 代码 #}
@@ -34,7 +39,7 @@
 {% endmacro %}
 
 from peewee import *
-from . import MyModel
+from . import *
 {% for require in requires %}
 from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}

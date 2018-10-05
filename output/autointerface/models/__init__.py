@@ -1,9 +1,10 @@
 import datetime
+import json
 
-from peewee import MySQLDatabase, Model
+from peewee import MySQLDatabase, Model, Field
 from peewee import PrimaryKeyField, DateTimeField
 
-from test import config
+from autointerface import config
 
 database = MySQLDatabase(config.dbname,
                          host=config.host,
@@ -26,3 +27,13 @@ class MyModel(Model):
     def update(cls, **update):
         update['update_time'] = datetime.datetime.now()
         return super(MyModel, cls).update(**update)
+
+
+class JSONField(Field):
+    field_type = 'json'
+
+    def db_value(self, value):
+        return json.dumps(value)
+
+    def python_value(self, value):
+        return json.loads(value)

@@ -2,7 +2,9 @@ import logging
 
 
 def format_value(value):
-    if isinstance(value, int):
+    if value is None:
+        return 'None'
+    elif isinstance(value, int):
         return repr(value)
     elif isinstance(value, float):
         return repr(round(value, 4))
@@ -26,8 +28,10 @@ def format_param_type(vtype):
         return 'float'
     elif vtype == 'bool':
         return 'bool'
+    elif vtype == 'list':
+        return 'list'
     else:
-        logging.error("接口定义的类型%s不支持" % vtype)
+        logging.error("不支持的接口参数类型%s" % vtype)
         return 'unknown'
 
 
@@ -46,10 +50,12 @@ def format_model_type(vtype):
         return 'BooleanField'
     elif vtype == 'datetime':
         return 'DateTimeField'
+    elif vtype == 'json':
+        return 'JSONField'
     elif vtype == 'foreign':
         return 'ForeignKeyField'
     else:
-        logging.error("模型定义的类型%s不支持" % vtype)
+        logging.error("不支持的模型字段类型%s" % vtype)
         return 'unknown'
 
 

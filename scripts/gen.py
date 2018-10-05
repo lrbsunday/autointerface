@@ -7,7 +7,7 @@ config = {
         "requires": ["resources"],
         "rules": [{
             'name': 'name',
-            'desc': '订单名称',
+            'description': '订单名称',
             'type': 'string',
             'null': False,
             'unique': True,
@@ -30,7 +30,7 @@ config = {
         "name": "resources",
         "rules": [{
             'name': 'name',
-            'desc': '资源名称',
+            'description': '资源名称',
             'type': 'string',
             'null': False,
             'unique': True,
@@ -51,7 +51,7 @@ config = {
         "gets": {
             "params": [{
                 "name": "page",
-                "help_text": "分页页数",
+                "description": "分页页数",
                 "need": False,
                 "default": 1,
                 "min": 1,
@@ -62,7 +62,7 @@ config = {
                 "is_pager": True,
             }, {
                 "name": "size",
-                "help_text": "分页大小",
+                "description": "分页大小",
                 "need": False,
                 "default": 10,
                 "vtype": "integer",
@@ -71,7 +71,7 @@ config = {
                 "is_pager": True,
             }, {
                 "name": "name",
-                "help_text": "订单名称",
+                "description": "订单名称",
                 "need": False,
                 "vtype": "string",
                 "is_filter": True,
@@ -81,7 +81,7 @@ config = {
             }, {
                 "name": "s_name",
                 "model_field": "name",
-                "help_text": "按订单名称排序",
+                "description": "按订单名称排序",
                 "need": False,
                 "vtype": "string",
                 "choices": ["desc", "asc"],
@@ -91,7 +91,7 @@ config = {
             }, {
                 "name": "resource_name",
                 "model_field": "Resources.name",
-                "help_text": "按资源名称过滤",
+                "description": "按资源名称过滤",
                 "need": False,
                 "vtype": "string",
                 "is_filter": True,
@@ -101,7 +101,7 @@ config = {
             }, {
                 "name": "s_resource_name",
                 "model_field": "Resources.name",
-                "help_text": "按资源名称排序",
+                "description": "按资源名称排序",
                 "need": False,
                 "vtype": "string",
                 "choices": ["desc", "asc"],
@@ -125,14 +125,14 @@ config = {
             }, {
                 "name": "state",
                 "model_field": "state",
-                "help_text": "订单状态",
+                "description": "订单状态",
                 "need": False,
                 "default": 1,
                 "vtype": "integer",
             }, {
                 "name": "resource_id",
                 "model_field": "resource_id",
-                "help_text": "资源ID",
+                "description": "资源ID",
                 "need": True,
                 "vtype": "integer",
             }]
@@ -153,7 +153,7 @@ config = {
             }, {
                 "name": "resource_id",
                 "model_field": "resource_id",
-                "help_text": "资源ID",
+                "description": "资源ID",
                 "need": False,
                 "vtype": "integer",
             }]
@@ -167,7 +167,7 @@ config = {
         "gets": {
             "params": [{
                 "name": "page",
-                "help_text": "分页页数",
+                "description": "分页页数",
                 "need": False,
                 "default": 1,
                 "vtype": "integer",
@@ -176,7 +176,7 @@ config = {
                 "is_pager": True,
             }, {
                 "name": "size",
-                "help_text": "分页大小",
+                "description": "分页大小",
                 "need": False,
                 "default": 10,
                 "vtype": "integer",
@@ -185,7 +185,7 @@ config = {
                 "is_pager": True,
             }, {
                 "name": "name",
-                "help_text": "资源名称",
+                "description": "资源名称",
                 "need": False,
                 "vtype": "string",
                 "is_filter": True,
@@ -194,7 +194,7 @@ config = {
             }, {
                 "name": "s_name",
                 "model_field": "name",
-                "help_text": "按订单名称排序",
+                "description": "按订单名称排序",
                 "need": False,
                 "vtype": "string",
                 "choices": ["desc", "asc"],
@@ -217,7 +217,7 @@ config = {
             }, {
                 "name": "state",
                 "model_field": "state",
-                "help_text": "资源状态",
+                "description": "资源状态",
                 "need": False,
                 "default": 1,
                 "vtype": "integer",
