@@ -6,7 +6,7 @@ from werkzeug.exceptions import MethodNotAllowed
 
 from ..models import database
 from ..common import exceptions
-{% for interface in interfaces %}
+{% for interface in project.interfaces %}
 from .{{ interface.name }} import {{ interface.name }}_blueprint
 {% endfor %}
 
@@ -58,6 +58,6 @@ def teardown_request(_):
         database.close()
 
 
-{% for interface in interfaces %}
+{% for interface in project.interfaces %}
 app.register_blueprint({{ interface.name }}_blueprint, url_prefix='/api/v1')
 {% endfor %}

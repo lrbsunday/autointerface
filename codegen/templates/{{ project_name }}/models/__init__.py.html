@@ -4,7 +4,7 @@ import json
 from peewee import MySQLDatabase, Model, Field
 from peewee import PrimaryKeyField, DateTimeField
 
-from {{ project_name }} import config
+from {{ project.name }} import config
 
 database = MySQLDatabase(config.dbname,
                          host=config.host,

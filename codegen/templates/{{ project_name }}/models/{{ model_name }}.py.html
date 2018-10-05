@@ -1,15 +1,21 @@
-{% macro define_model_field(rule, model_name) %}
+{% macro define_model_field(field, model, project) %}
     {# 类型 #}
-    {% set field_type = rule['type'] | format_model_type %}
+    {% set field_type = field['type'] | format_model_type %}
     {# 默认值 #}
     {% set arg_list = [] %}
-    {% for key, value in rule.items() %}
-        {% if key == 'model' %}
-            {% do arg_list.append(value | capitalize) %}
+    {% for key, value in field.items() %}
+        {% if value == None %}
+            {% continue %}
+        {% endif %}
+        {% if key == 'foreign' %}
+            {% do arg_list.append(project.model_mapping[value].name | capitalize) %}
         {% endif %}
     {% endfor %}
-    {% for key, value in rule.items() %}
-        {% if key == 'model' %}
+    {% for key, value in field.items() %}
+        {% if value == None %}
+            {% continue %}
+        {% endif %}
+        {% if key == 'foreign' %}
             {% continue %}
         {% endif %}
         {% if key == 'on_delete' %}
@@ -31,21 +37,21 @@
             {% do arg_list.append('help_text=' ~ value | format_value) %}
         {% endif %}
     {% endfor %}
-    {% if rule['type'] == 'foreign' %}
-        {% do arg_list.append('backref="' ~ model_name ~ '"') %}
+    {% if field['type'] == 'foreign' %}
+        {% do arg_list.append('backref="' ~ model.name ~ '"') %}
     {% endif %}
     {# 代码 #}
-    {{ rule['name'] }} = {{ field_type }}({{ arg_list | join(', ') }})
+    {{ field['name'] }} = {{ field_type }}({{ arg_list | join(', ') }})
 {% endmacro %}
 
 from peewee import *
 from . import *
 {% for require in requires %}
-from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
+from {{ project.name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}
 
 
-class {{ name | capitalize }}(MyModel):
-    {% for rule in rules %}
-        {{- define_model_field(rule, name) -}}
+class {{ model.name | capitalize }}(MyModel):
+    {% for field in model.fields %}
+        {{- define_model_field(field, model, project) -}}
     {% endfor %}

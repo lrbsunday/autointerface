@@ -5,7 +5,6 @@ from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
 from autointerface.models.params import Params
-from autointerface.models.interfaces import Interfaces
 from ..common import tools, exceptions
 
 params_blueprint = Blueprint('params', __name__)
@@ -17,18 +16,18 @@ def create_params():
     request_info = request.get_json()
 
     fields = {
-        "name": tools.get_params(request_info, 'name', vtype=str, need=True),
-        "description": tools.get_params(request_info, 'description', vtype=str, need=False),
-        "need": tools.get_params(request_info, 'need', vtype=bool, need=True),
+        "name": tools.get_params(request_info, 'name', need=True, vtype=str),
+        "description": tools.get_params(request_info, 'description', need=False, default='', vtype=str),
+        "need": tools.get_params(request_info, 'need', need=False, default=True, vtype=bool),
         "default": tools.get_params(request_info, 'default', need=False),
-        "min": tools.get_params(request_info, 'min', vtype=int, need=False),
-        "max": tools.get_params(request_info, 'max', vtype=int, need=False),
-        "vtype": tools.get_params(request_info, 'vtype', vtype=str, need=False),
-        "choices": tools.get_params(request_info, 'choices', vtype=list, need=False),
-        "function": tools.get_params(request_info, 'function', vtype=str, default='normal', choices=['normal', 'filter', 'sort', 'page']),
-        "filter_op": tools.get_params(request_info, 'filter_op', vtype=str, need=False),
-        "filter_condition": tools.get_params(request_info, 'filter_condition', vtype=str, need=False),
-        "interface_id": tools.get_params(request_info, 'interface_id', vtype=int, need=True),
+        "min": tools.get_params(request_info, 'min', need=False, vtype=int),
+        "max": tools.get_params(request_info, 'max', need=False, vtype=int),
+        "vtype": tools.get_params(request_info, 'vtype', need=False, vtype=str),
+        "choices": tools.get_params(request_info, 'choices', need=False, vtype=list),
+        "function": tools.get_params(request_info, 'function', need=False, default='normal', choices=['normal', 'filter', 'sort', 'page'], vtype=str),
+        "filter_op": tools.get_params(request_info, 'filter_op', need=False, vtype=str),
+        "filter_condition": tools.get_params(request_info, 'filter_condition', need=False, vtype=str),
+        "interface_id": tools.get_params(request_info, 'interface_id', need=True, vtype=int),
     }
 
     try:

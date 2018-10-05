@@ -5,12 +5,12 @@ from codegen.render import render
 from codegen import WORD_DIR
 
 
-def generate(config,
-             template_path=WORD_DIR + '/codegen/templates',
-             dst_path=WORD_DIR + '/output'):
-    project_name = config['project_name']
-    template_path = template_path.rstrip('/')
-    dst_path = dst_path.rstrip('/')
+def generate(project,
+             template_path=WORD_DIR + "/codegen/templates",
+             dst_path=WORD_DIR + "/output"):
+    project_name = project["name"]
+    template_path = template_path.rstrip("/")
+    dst_path = dst_path.rstrip("/")
 
     if dst_path != WORD_DIR:
         shutil.rmtree(dst_path, ignore_errors=True)
@@ -20,42 +20,44 @@ def generate(config,
         for src_filename in files:
             dst_filename = os.path.splitext(src_filename)[0]
             source = os.path.join(relative_path, src_filename)
-            if '{{' in dst_filename:
+            if "{{" in dst_filename:
                 continue
 
             destination = os.path.join(dst_path, relative_path,
                                        dst_filename)
-            destination = destination.replace('{{ project_name }}',
+            destination = destination.replace("{{ project_name }}",
                                               project_name)
-            context = config
+            context = {
+                "project": project
+            }
             render(source, destination, **context)
 
     model_template_filename = \
         "{{ project_name }}/models/{{ model_name }}.py.html"
-    for model in config["models"]:
+    for model in project["models"]:
         destination = os.path.join(dst_path,
                                    model_template_filename
-                                   .replace('{{ project_name }}',
+                                   .replace("{{ project_name }}",
                                             project_name)
-                                   .replace('{{ model_name }}',
-                                            model['name'])[:-5])
+                                   .replace("{{ model_name }}",
+                                            model["name"])[:-5])
         context = {
-            "project_name": project_name
+            "project": project,
+            "model": model
         }
-        context.update(model)
         render(model_template_filename, destination, **context)
 
     interface_template_filename = \
         "{{ project_name }}/web/{{ interface_name }}.py.html"
-    for interface in config["interfaces"]:
+    for interface in project["interfaces"]:
         destination = os.path.join(dst_path,
                                    interface_template_filename
-                                   .replace('{{ project_name }}',
+                                   .replace("{{ project_name }}",
                                             project_name)
-                                   .replace('{{ interface_name }}',
-                                            interface['name'])[:-5])
+                                   .replace("{{ interface_name }}",
+                                            interface["name"])[:-5])
         context = {
-            "project_name": project_name
+            "project": project,
+            "interface": interface
         }
-        context.update(interface)
         render(interface_template_filename, destination, **context)

@@ -1,6 +1,9 @@
-{% macro get_param(rule, source) -%}
-    {% set arg_list = [source, '\'' ~ rule['name'] ~ '\''] %}
-    {% for key, value in rule.items() %}
+{% macro get_param(param, source) -%}
+    {% set arg_list = [source, '\'' ~ param['name'] ~ '\''] %}
+    {% for key, value in param.items() %}
+        {% if value == None %}
+            {% continue %}
+        {% endif %}
         {% if key == 'default' %}
             {% do arg_list.append('default=' ~ value | format_value) %}
         {% endif %}
@@ -23,28 +26,28 @@
     tools.get_params({{ arg_list | join(', ') }})
 {%- endmacro %}
 
-{% macro get_filter_condition(rule, interface_name) -%}
-    {% if rule.filter_op %}
-        {{ rule | get_model_field(interface_name | capitalize) }} {{ rule.filter_op }} {{ rule['name'] }}
-    {%- elif rule.filter_condition %}
-        {{ rule.filter_condition }}
+{% macro get_filter_condition(param, interface_name) -%}
+    {% if param.filter_op %}
+        {{ param | get_model_field(interface_name | capitalize) }} {{ param.filter_op }} {{ param['name'] }}
+    {%- elif param.filter_condition %}
+        {{ param.filter_condition }}
     {%- else %}
-        {{ rule | get_model_field(interface_name | capitalize) }} == {{ rule['name'] }}
+        {{ param | get_model_field(interface_name | capitalize) }} == {{ param['name'] }}
     {%- endif %}
 {%- endmacro %}
 
-{% macro interface_param(rule, source) %}
-    {{ rule['name'] }} = {{ get_param(rule, source) }}
-    {% if rule['is_filter'] %}
-    if {{ rule['name'] }} is not None:
-        filter_conditions.append({{ get_filter_condition(rule, name) }})
+{% macro interface_param(param, source) %}
+    {{ param['name'] }} = {{ get_param(param, source) }}
+    {% if param['is_filter'] %}
+    if {{ param['name'] }} is not None:
+        filter_conditions.append({{ get_filter_condition(param, name) }})
     {% endif %}
-    {% if rule['is_sorter'] %}
-    if {{ rule['name'] }} is not None:
-        if {{ rule['name'] }} == 'desc':
-            sort_conditions.append({{ rule | get_model_field(name | capitalize) }}.desc())
+    {% if param['is_sorter'] %}
+    if {{ param['name'] }} is not None:
+        if {{ param['name'] }} == 'desc':
+            sort_conditions.append({{ param | get_model_field(name | capitalize) }}.desc())
         else:
-            sort_conditions.append({{ rule | get_model_field(name | capitalize) }})
+            sort_conditions.append({{ param | get_model_field(name | capitalize) }})
     {% endif %}
 
 {% endmacro %}
@@ -53,19 +56,19 @@ from flask import Blueprint, request
 from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
-from {{ project_name }}.models.{{ name }} import {{ name | capitalize }}
-{% for require in requires %}
-from {{ project_name }}.models.{{ require }} import {{ require | capitalize }}
+from {{ project.name }}.models.{{ interface.name }} import {{ interface.name | capitalize }}
+{% for require in interface.requires %}
+from {{ project.name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}
 from ..common import tools, exceptions
 
-{{ name }}_blueprint = Blueprint('{{ name }}', __name__)
+{{ interface.name }}_blueprint = Blueprint('{{ interface.name }}', __name__)
 
 
-{% if gets is defined %}
-@{{ name }}_blueprint.route('/{{ name }}', methods=['GET'])
+{% if interface.method == 'GETS' %}
+@{{ interface.name }}_blueprint.route('/{{ interface.name }}', methods=['GET'])
 @tools.request_decorator()
-def get_{{ name }}():
+def get_{{ interface.name }}():
     filter_conditions = []
     sort_conditions = []
 
@@ -73,16 +76,16 @@ def get_{{ name }}():
     {% set ns.has_page = False %}
     {% set ns.has_size = False %}
     {% set ns.join_list = [] %}
-    {% for rule in gets['params'] %}
-        {{- interface_param(rule, 'request.args') -}}
-        {% if rule.name == 'page' and rule.is_pager %}
+    {% for param in interface.params %}
+        {{- interface_param(param, 'request.args') -}}
+        {% if param.name == 'page' and param.is_pager %}
             {% set ns.has_page = True %}
         {% endif %}
-        {% if rule.name == 'size' and rule.is_pager %}
+        {% if param.name == 'size' and param.is_pager %}
             {% set ns.has_size = True %}
         {% endif %}
-        {% if '.' in rule.model_field %}
-            {% do ns.join_list.append('join(' + rule.model_field | split('.') | index(0) + ')') %}
+        {% if '.' in param.model_field %}
+            {% do ns.join_list.append('join(' + param.model_field | split('.') | index(0) + ')') %}
         {% endif %}
     {% endfor %}
     rows = {{ name | capitalize }}.select()
@@ -107,16 +110,16 @@ def get_{{ name }}():
     return [model_to_dict({{ arg_list | join(', ') }}) for row in rows]
 {% endif %}
 
-{% if get is defined %}
-@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['GET'])
+{% if interface.method == 'GET' %}
+@{{ interface.name }}_blueprint.route('/{{ interface.name }}/<string:uid>', methods=['GET'])
 @tools.request_decorator()
-def get_one_{{ name }}(uid):
+def get_one_{{ interface.name }}(uid):
     uid = tools.check_params("uid", uid, vtype=int)
 
     try:
-        row = {{ name | capitalize }}.select().where({{ name | capitalize }}.uid == uid).get()
+        row = {{ interface.name | capitalize }}.select().where({{ interface.name | capitalize }}.uid == uid).get()
     except DoesNotExist:
-        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+        raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在" % uid)
 
     {% set arg_list = ['row'] %}
     {% if get['recurse'] is defined %}
@@ -128,67 +131,67 @@ def get_one_{{ name }}(uid):
     return model_to_dict({{ arg_list | join(', ') }})
 {% endif %}
 
-{% if post is defined %}
-@{{ name }}_blueprint.route('/{{ name }}', methods=['POST'])
+{% if interface.method == 'POST' %}
+@{{ interface.name }}_blueprint.route('/{{ interface.name }}', methods=['POST'])
 @tools.request_decorator()
-def create_{{ name }}():
+def create_{{ interface.name }}():
     request_info = request.get_json()
 
     fields = {
-    {% for rule in post['params'] %}
-        "{{ rule['model_field'] or rule['name'] }}": {{ get_param(rule, 'request_info') }},
+    {% for param in interface.params %}
+        "{{ param['model_field'] or param.name }}": {{ get_param(param, 'request_info') }},
     {% endfor %}
     }
 
     try:
-        row = {{ name | capitalize }}.create(**fields)
+        row = {{ interface.name | capitalize }}.create(**fields)
     except IntegrityError as e:
         if e.args[0] == 1062:
-            raise exceptions.ResourceAlreadyExists(detail="创建{{ name_cn }}时，{{ name_cn }}已存在")
+            raise exceptions.ResourceAlreadyExists(detail="创建{{ interface.name_cn }}时，{{ interface.name_cn }}已存在")
         elif e.args[0] in (1451, 1452):
-            raise exceptions.ForeignConstraintException(detail="创建{{ name_cn }}时，外键约束错误")
+            raise exceptions.ForeignConstraintException(detail="创建{{ interface.name_cn }}时，外键约束错误")
         else:
             raise exceptions.IntegrityError()
 
     return {"id": row.uid}
 {% endif %}
 
-{% if put is defined %}
-@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['PUT'])
+{% if interface.method == 'PUT' %}
+@{{ interface.name }}_blueprint.route('/{{ interface.name }}/<string:uid>', methods=['PUT'])
 @tools.request_decorator()
-def create_or_update_{{ name }}(uid):
+def create_or_update_{{ interface.name }}(uid):
     uid = tools.check_params("uid", uid, vtype=int)
     request_info = request.get_json()
 
     fields = {}
-    {% for rule in put['params'] %}
-    if "{{ rule['name'] }}" in request_info:
-        fields["{{ rule['name'] or rule['model_field'] }}"] = {{ get_param(rule, 'request_info') }}
+    {% for param in interface.params %}
+    if "{{ param['name'] }}" in request_info:
+        fields["{{ param['name'] or param['model_field'] }}"] = {{ get_param(param, 'request_info') }}
     {% endfor %}
 
-    q = {{ name | capitalize }}.update(**fields).where({{ name | capitalize }}.uid == uid)
+    q = {{ interface.name | capitalize }}.update(**fields).where({{ interface.name | capitalize }}.uid == uid)
     try:
         exec_code = q.execute()
     except IntegrityError as e:
         if e.args[0] == 1062:
-            raise exceptions.ResourceAlreadyExists(detail="更新{{ name_cn }}时，{{ name_cn }}已存在")
+            raise exceptions.ResourceAlreadyExists(detail="更新{{ interface.name_cn }}时，{{ interface.name_cn }}已存在")
         elif e.args[0] in (1451, 1452):
-            raise exceptions.ForeignConstraintException(detail="更新{{ name_cn }}时，外键约束错误")
+            raise exceptions.ForeignConstraintException(detail="更新{{ interface.name_cn }}时，外键约束错误")
         else:
             raise exceptions.IntegrityError()
     if exec_code == 0:
-        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+        raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在" % uid)
 
     return {}
 {% endif %}
 
-{% if delete is defined %}
-@{{ name }}_blueprint.route('/{{ name }}/<string:uid>', methods=['DELETE'])
+{% if interface.method == 'DELETE' %}
+@{{ interface.name }}_blueprint.route('/{{ interface.name }}/<string:uid>', methods=['DELETE'])
 @tools.request_decorator()
-def delete_{{ name }}(uid):
+def delete_{{ interface.name }}(uid):
     uid = tools.check_params("uid", uid, vtype=int)
 
-    q = {{ name | capitalize }}.delete().where({{ name | capitalize }}.uid == uid)
+    q = {{ interface.name | capitalize }}.delete().where({{ interface.name | capitalize }}.uid == uid)
     try:
         exec_code = q.execute()
     except IntegrityError as e:
@@ -197,7 +200,7 @@ def delete_{{ name }}(uid):
         else:
             raise exceptions.IntegrityError()
     if exec_code == 0:
-        raise exceptions.ResourceNotFound(detail="{{ name_cn }}%s不存在" % uid)
+        raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在" % uid)
 
     return {}
 {% endif %}

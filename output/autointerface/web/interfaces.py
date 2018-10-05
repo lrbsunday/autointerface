@@ -5,7 +5,6 @@ from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
 from autointerface.models.interfaces import Interfaces
-from autointerface.models.projects import Projects
 from ..common import tools, exceptions
 
 interfaces_blueprint = Blueprint('interfaces', __name__)
@@ -17,11 +16,11 @@ def create_interfaces():
     request_info = request.get_json()
 
     fields = {
-        "name": tools.get_params(request_info, 'name', vtype=str, need=True),
-        "name_cn": tools.get_params(request_info, 'name_cn', vtype=str, need=True),
-        "method": tools.get_params(request_info, 'method', choices=['GET', 'GETS', 'POST', 'PUT', 'DELETE'], vtype=str, need=True),
-        "description": tools.get_params(request_info, 'description', default='', vtype=str, need=False),
-        "project_id": tools.get_params(request_info, 'project_id', vtype=int, need=True),
+        "name": tools.get_params(request_info, 'name', need=True, vtype=str),
+        "name_cn": tools.get_params(request_info, 'name_cn', need=True, vtype=str),
+        "method": tools.get_params(request_info, 'method', need=True, choices=['GET', 'GETS', 'POST', 'PUT', 'DELETE'], vtype=str),
+        "description": tools.get_params(request_info, 'description', need=False, default='', vtype=str),
+        "project_id": tools.get_params(request_info, 'project_id', need=True, vtype=int),
     }
 
     try:

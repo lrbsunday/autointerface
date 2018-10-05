@@ -17,8 +17,8 @@ def create_projects():
 
     fields = {
         "name": tools.get_params(request_info, 'name', need=True, vtype=str),
-        "state": tools.get_params(request_info, 'state', default=1, need=False, vtype=int),
-        "description": tools.get_params(request_info, 'description', default='', need=False, vtype=str),
+        "state": tools.get_params(request_info, 'state', need=False, default=1, vtype=int),
+        "description": tools.get_params(request_info, 'description', need=False, default='', vtype=str),
     }
 
     try:

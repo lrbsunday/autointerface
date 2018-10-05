@@ -1,4 +1,5 @@
 from codegen.codegen import generate
+from codegen.load_config import load_config
 
 config = {
     "project_name": "autointerface",
@@ -481,4 +482,5 @@ config = {
     }]
 }
 
-generate(config)
+# generate(config)
+generate(load_config(1))
