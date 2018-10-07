@@ -1,7 +1,7 @@
 
 
 from flask import Blueprint, request
-from peewee import DoesNotExist, IntegrityError
+from peewee import DoesNotExist, IntegrityError, fn
 from playhouse.shortcuts import model_to_dict
 
 from autointerface.models.fields import Fields

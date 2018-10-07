@@ -1,7 +1,7 @@
 
 
 from flask import Blueprint, request
-from peewee import DoesNotExist, IntegrityError
+from peewee import DoesNotExist, IntegrityError, fn
 from playhouse.shortcuts import model_to_dict
 
 from autointerface.models.interfaces import Interfaces
@@ -146,11 +146,23 @@ def get_interfaces():
     if project_name is not None:
         filter_conditions.append(Projects.name == project_name)
 
+    p = tools.get_params(request.args, 'p', need=False, default=1, vtype=int)
+
+    s = tools.get_params(request.args, 's', need=False, default=10, vtype=int)
+
     rows = Interfaces.select()
+    count_result = Interfaces.select(fn.COUNT(1).alias('total'))
     rows = rows.join(Projects)
+    count_result = count_result.join(Projects)
     if filter_conditions:
         rows = rows.where(*filter_conditions)
+        count_result = count_result.where(*filter_conditions)
     if sort_conditions:
         rows = rows.order_by(*sort_conditions)
 
-    return [model_to_dict(row, recurse=True, backrefs=True) for row in rows]
+    rows = rows.paginate(page=p, paginate_by=s)
+
+    return {
+        "interfaces": [model_to_dict(row, recurse=True, backrefs=True) for row in rows],
+        "total": count_result.get().total
+    }

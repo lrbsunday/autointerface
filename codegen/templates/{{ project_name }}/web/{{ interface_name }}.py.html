@@ -54,7 +54,7 @@
 {% endmacro %}
 
 from flask import Blueprint, request
-from peewee import DoesNotExist, IntegrityError
+from peewee import DoesNotExist, IntegrityError, fn
 from playhouse.shortcuts import model_to_dict
 
 from {{ project.name }}.models.{{ interfaces.name }} import {{ interfaces.name | capitalize }}
@@ -75,32 +75,35 @@ def get_{{ interface.name }}():
     sort_conditions = []
 
     {% set ns = namespace() %}
-    {% set ns.has_page = False %}
-    {% set ns.has_size = False %}
+    {% set ns.page_param = False %}
+    {% set ns.size_param = False %}
     {% set ns.join_list = [] %}
     {% for param in interface.params %}
         {{- interface_param(param, interface, 'request.args') -}}
-        {% if param.name == 'page' and param.function == 'page' %}
-            {% set ns.has_page = True %}
+        {% if param.function == 'page' %}
+            {% set ns.page_param = param.name %}
         {% endif %}
-        {% if param.name == 'size' and param.function == 'page' %}
-            {% set ns.has_size = True %}
+        {% if param.function == 'size' %}
+            {% set ns.size_param = param.name %}
         {% endif %}
         {% if param.field is defined and interface.name != param.field.model.name %}
             {% do ns.join_list.append('join(' + param.field.model.name | capitalize + ')') %}
         {% endif %}
     {% endfor %}
     rows = {{ interface.name | capitalize }}.select()
+    count_result = {{ interface.name | capitalize }}.select(fn.COUNT(1).alias('total'))
     {% if ns.join_list %}
     rows = rows.{{ ns.join_list | unique | join('.') }}
+    count_result = count_result.{{ ns.join_list | unique | join('.') }}
     {% endif %}
     if filter_conditions:
         rows = rows.where(*filter_conditions)
+        count_result = count_result.where(*filter_conditions)
     if sort_conditions:
         rows = rows.order_by(*sort_conditions)
 
-    {% if ns.has_page and ns.has_size %}
-    rows = rows.paginate(page=page, paginate_by=size)
+    {% if ns.page_param and ns.size_param %}
+    rows = rows.paginate(page={{ ns.page_param }}, paginate_by={{ ns.size_param }})
     {% endif %}
     {% set arg_list = ['row'] %}
     {% if interface.recurse is defined %}
@@ -109,7 +112,11 @@ def get_{{ interface.name }}():
     {% if interface.backref is defined %}
         {% do arg_list.append('backrefs=' ~ interface.backref | format_value) %}
     {% endif %}
-    return [model_to_dict({{ arg_list | join(', ') }}) for row in rows]
+
+    return {
+        "{{ interface.name }}": [model_to_dict({{ arg_list | join(', ') }}) for row in rows],
+        "total": count_result.get().total
+    }
 {% endif %}
 
 {% if interface.method == 'GET' %}
