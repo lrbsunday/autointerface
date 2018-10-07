@@ -1,6 +1,7 @@
 
 from peewee import *
 from . import *
+from autointerface.models.projects import Projects
 
 
 class Models(MyModel):

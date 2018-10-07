@@ -58,6 +58,6 @@ def generate(project,
                                             interface["name"])[:-5])
         context = {
             "project": project,
-            "interface": interface
+            "interfaces": interface
         }
         render(interface_template_filename, destination, **context)

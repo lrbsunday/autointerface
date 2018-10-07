@@ -11,5 +11,5 @@ setup(
         'console_scripts': [
         ]
     },
-    install_requires=['peewee', 'flask', 'pymysql', 'click']
+    install_requires=['peewee', 'flask', 'pymysql', 'click', 'peewee_migrate']
 )

@@ -15,6 +15,24 @@ def load_config(project_id):
     project = Projects.select().where(Projects.uid == project_id).get()
     project = model_to_dict(project, backrefs=True, recurse=True)
 
-    project["model_mapping"] = {model["uid"]: model
-                                for model in project["models"]}
+    model_mapping = {model["uid"]: model
+                     for model in project["models"]}
+    project["model_mapping"] = model_mapping
+    for model in project["models"]:
+        model["requires"] = []
+        for field in model["fields"]:
+            if field["type"] == "foreign":
+                model["requires"].append(
+                    model_mapping[field["foreign"]]["name"])
+
+    interface_group = dict()
+    for interface in project["interfaces"]:
+        interface_group.setdefault(interface["name"], {
+            "requires": [],
+            "interfaces": [],
+            "name": interface["name"]
+        })
+        interface_group[interface["name"]]["interfaces"].append(interface)
+    project["interfaces"] = list(interface_group.values())
+
     return project

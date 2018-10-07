@@ -1,6 +1,7 @@
 
 from peewee import *
 from . import *
+from autointerface.models.interfaces import Interfaces
 
 
 class Params(MyModel):

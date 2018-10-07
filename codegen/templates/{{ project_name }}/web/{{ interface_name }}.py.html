@@ -56,15 +56,16 @@ from flask import Blueprint, request
 from peewee import DoesNotExist, IntegrityError
 from playhouse.shortcuts import model_to_dict
 
-from {{ project.name }}.models.{{ interface.name }} import {{ interface.name | capitalize }}
-{% for require in interface.requires %}
+from {{ project.name }}.models.{{ interfaces.name }} import {{ interfaces.name | capitalize }}
+{% for require in interfaces.requires %}
 from {{ project.name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}
 from ..common import tools, exceptions
 
-{{ interface.name }}_blueprint = Blueprint('{{ interface.name }}', __name__)
+{{ interfaces.name }}_blueprint = Blueprint('{{ interfaces.name }}', __name__)
 
 
+{% for interface in interfaces.interfaces %}
 {% if interface.method == 'GETS' %}
 @{{ interface.name }}_blueprint.route('/{{ interface.name }}', methods=['GET'])
 @tools.request_decorator()
@@ -122,10 +123,10 @@ def get_one_{{ interface.name }}(uid):
         raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在" % uid)
 
     {% set arg_list = ['row'] %}
-    {% if get['recurse'] is defined %}
+    {% if interface.recurse is defined %}
         {% do arg_list.append('recurse=' ~ get['recurse'] | format_value) %}
     {% endif %}
-    {% if get['backrefs'] is defined %}
+    {% if interface.backrefs is defined %}
         {% do arg_list.append('backrefs=' ~ get['backrefs'] | format_value) %}
     {% endif %}
     return model_to_dict({{ arg_list | join(', ') }})
@@ -204,3 +205,4 @@ def delete_{{ interface.name }}(uid):
 
     return {}
 {% endif %}
+{% endfor %}

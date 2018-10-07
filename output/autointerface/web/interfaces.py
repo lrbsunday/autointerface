@@ -21,6 +21,8 @@ def create_interfaces():
         "method": tools.get_params(request_info, 'method', need=True, choices=['GET', 'GETS', 'POST', 'PUT', 'DELETE'], vtype=str),
         "description": tools.get_params(request_info, 'description', need=False, default='', vtype=str),
         "project_id": tools.get_params(request_info, 'project_id', need=True, vtype=int),
+        "recurse": tools.get_params(request_info, 'recurse', need=False, vtype=bool),
+        "backref": tools.get_params(request_info, 'backref', need=False, vtype=bool),
     }
 
     try:

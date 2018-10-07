@@ -1,6 +1,7 @@
 
 from peewee import *
 from . import *
+from autointerface.models.projects import Projects
 
 
 class Interfaces(MyModel):
@@ -13,3 +14,7 @@ class Interfaces(MyModel):
                             null=False, unique=False, index=False)
     project = ForeignKeyField(Projects, help_text='所属项目', null=False,
                               unique=False, index=False, on_delete='CASCADE', backref="interfaces")
+    recurse = BooleanField(help_text='返回外键所指对象的内容，仅对查询类接口有效',
+                           null=True, unique=False, index=False)
+    backref = BooleanField(help_text='返回被作为外键的对象列表，仅对查询类接口有',
+                           null=True, unique=False, index=False)

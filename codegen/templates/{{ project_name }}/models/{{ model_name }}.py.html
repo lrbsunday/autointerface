@@ -46,7 +46,7 @@
 
 from peewee import *
 from . import *
-{% for require in requires %}
+{% for require in model.requires %}
 from {{ project.name }}.models.{{ require }} import {{ require | capitalize }}
 {% endfor %}
 

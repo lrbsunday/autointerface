@@ -32,3 +32,16 @@ def create_projects():
             raise exceptions.IntegrityError()
 
     return {"id": row.uid}
+
+
+@projects_blueprint.route('/projects/<string:uid>', methods=['GET'])
+@tools.request_decorator()
+def get_one_projects(uid):
+    uid = tools.check_params("uid", uid, vtype=int)
+
+    try:
+        row = Projects.select().where(Projects.uid == uid).get()
+    except DoesNotExist:
+        raise exceptions.ResourceNotFound(detail="项目%s不存在" % uid)
+
+    return model_to_dict(row)

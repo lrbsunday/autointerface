@@ -1,6 +1,7 @@
 
 from peewee import *
 from . import *
+from autointerface.models.models import Models
 
 
 class Fields(MyModel):
