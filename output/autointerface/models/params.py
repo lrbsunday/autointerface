@@ -2,6 +2,7 @@
 from peewee import *
 from . import *
 from autointerface.models.interfaces import Interfaces
+from autointerface.models.fields import Fields
 
 
 class Params(MyModel):
@@ -22,3 +23,5 @@ class Params(MyModel):
     interface = ForeignKeyField(Interfaces, help_text='所属接口', null=False,
                                 unique=False, index=False, on_delete='CASCADE', backref="params")
     choices = JSONField(help_text='可选值', null=True, unique=False, index=False)
+    field = ForeignKeyField(Fields, help_text='', null=True, unique=False,
+                            index=False, on_delete='CASCADE', backref="params")

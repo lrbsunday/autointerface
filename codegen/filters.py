@@ -59,12 +59,23 @@ def format_model_type(vtype):
         return 'unknown'
 
 
-def get_model_field(rule, name):
-    model_field = rule.get('model_field') or rule.get('name', '')
-    if '.' in model_field:
-        return model_field
+def get_model_field(param, name):
+    if 'field' in param:
+        return capital(param['field']['model']['name']) + '.' + \
+               param['field']['name']
     else:
-        return name + '.' + model_field
+        return name + '.' + param['name']
+
+
+def get_field(param):
+    if 'field' in param:
+        return param['field']['name']
+    else:
+        return param['name']
+
+
+def capital(string):
+    return string[0].upper() + string[1:].lower()
 
 
 def split(value, split_char):
@@ -73,3 +84,11 @@ def split(value, split_char):
 
 def index(value, i):
     return value[i]
+
+
+def startswith(value, prefix):
+    return value.startswith(prefix)
+
+
+def endswith(value, suffix):
+    return value.endswith(suffix)

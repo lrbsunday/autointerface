@@ -1,9 +1,6 @@
 {% macro get_param(param, source) -%}
     {% set arg_list = [source, '\'' ~ param['name'] ~ '\''] %}
     {% for key, value in param.items() %}
-        {% if value == None %}
-            {% continue %}
-        {% endif %}
         {% if key == 'default' %}
             {% do arg_list.append('default=' ~ value | format_value) %}
         {% endif %}
@@ -26,28 +23,32 @@
     tools.get_params({{ arg_list | join(', ') }})
 {%- endmacro %}
 
-{% macro get_filter_condition(param, interface_name) -%}
+{% macro get_filter_condition(param, interface) -%}
     {% if param.filter_op %}
-        {{ param | get_model_field(interface_name | capitalize) }} {{ param.filter_op }} {{ param['name'] }}
+        {%- if param.filter_op | startswith(".") %}
+        {{ param | get_model_field(interface.name | capitalize) }}{{ param.filter_op }}({{ param['name'] }})
+        {%- else %}
+        {{ param | get_model_field(interface.name | capitalize) }} {{ param.filter_op }} {{ param['name'] }}
+        {%- endif %}
     {%- elif param.filter_condition %}
         {{ param.filter_condition }}
     {%- else %}
-        {{ param | get_model_field(interface_name | capitalize) }} == {{ param['name'] }}
+        {{ param | get_model_field(interface.name | capitalize) }} == {{ param['name'] }}
     {%- endif %}
 {%- endmacro %}
 
-{% macro interface_param(param, source) %}
+{% macro interface_param(param, interface, source) %}
     {{ param['name'] }} = {{ get_param(param, source) }}
-    {% if param['is_filter'] %}
+    {% if param.function == 'filter' %}
     if {{ param['name'] }} is not None:
-        filter_conditions.append({{ get_filter_condition(param, name) }})
+        filter_conditions.append({{ get_filter_condition(param, interface) }})
     {% endif %}
-    {% if param['is_sorter'] %}
+    {% if param.function == 'sort' %}
     if {{ param['name'] }} is not None:
         if {{ param['name'] }} == 'desc':
-            sort_conditions.append({{ param | get_model_field(name | capitalize) }}.desc())
+            sort_conditions.append({{ param | get_model_field(interface.name | capitalize) }}.desc())
         else:
-            sort_conditions.append({{ param | get_model_field(name | capitalize) }})
+            sort_conditions.append({{ param | get_model_field(interface.name | capitalize) }})
     {% endif %}
 
 {% endmacro %}
@@ -78,18 +79,18 @@ def get_{{ interface.name }}():
     {% set ns.has_size = False %}
     {% set ns.join_list = [] %}
     {% for param in interface.params %}
-        {{- interface_param(param, 'request.args') -}}
-        {% if param.name == 'page' and param.is_pager %}
+        {{- interface_param(param, interface, 'request.args') -}}
+        {% if param.name == 'page' and param.function == 'page' %}
             {% set ns.has_page = True %}
         {% endif %}
-        {% if param.name == 'size' and param.is_pager %}
+        {% if param.name == 'size' and param.function == 'page' %}
             {% set ns.has_size = True %}
         {% endif %}
-        {% if '.' in param.model_field %}
-            {% do ns.join_list.append('join(' + param.model_field | split('.') | index(0) + ')') %}
+        {% if param.field is defined and interface.name != param.field.model.name %}
+            {% do ns.join_list.append('join(' + param.field.model.name | capitalize + ')') %}
         {% endif %}
     {% endfor %}
-    rows = {{ name | capitalize }}.select()
+    rows = {{ interface.name | capitalize }}.select()
     {% if ns.join_list %}
     rows = rows.{{ ns.join_list | unique | join('.') }}
     {% endif %}
@@ -102,11 +103,11 @@ def get_{{ interface.name }}():
     rows = rows.paginate(page=page, paginate_by=size)
     {% endif %}
     {% set arg_list = ['row'] %}
-    {% if gets['recurse'] is defined %}
-        {% do arg_list.append('recurse=' ~ gets['recurse'] | format_value) %}
+    {% if interface.recurse is defined %}
+        {% do arg_list.append('recurse=' ~ interface.recurse | format_value) %}
     {% endif %}
-    {% if gets['backrefs'] is defined %}
-        {% do arg_list.append('backrefs=' ~ gets['backrefs'] | format_value) %}
+    {% if interface.backref is defined %}
+        {% do arg_list.append('backrefs=' ~ interface.backref | format_value) %}
     {% endif %}
     return [model_to_dict({{ arg_list | join(', ') }}) for row in rows]
 {% endif %}
@@ -124,10 +125,10 @@ def get_one_{{ interface.name }}(uid):
 
     {% set arg_list = ['row'] %}
     {% if interface.recurse is defined %}
-        {% do arg_list.append('recurse=' ~ get['recurse'] | format_value) %}
+        {% do arg_list.append('recurse=' ~ interface.recurse | format_value) %}
     {% endif %}
-    {% if interface.backrefs is defined %}
-        {% do arg_list.append('backrefs=' ~ get['backrefs'] | format_value) %}
+    {% if interface.backref is defined %}
+        {% do arg_list.append('backrefs=' ~ interface.backref | format_value) %}
     {% endif %}
     return model_to_dict({{ arg_list | join(', ') }})
 {% endif %}
@@ -140,7 +141,7 @@ def create_{{ interface.name }}():
 
     fields = {
     {% for param in interface.params %}
-        "{{ param['model_field'] or param.name }}": {{ get_param(param, 'request_info') }},
+        "{{ param | get_field }}": {{ get_param(param, 'request_info') }},
     {% endfor %}
     }
 
@@ -167,7 +168,7 @@ def create_or_update_{{ interface.name }}(uid):
     fields = {}
     {% for param in interface.params %}
     if "{{ param['name'] }}" in request_info:
-        fields["{{ param['name'] or param['model_field'] }}"] = {{ get_param(param, 'request_info') }}
+        fields["{{ param | get_field }}"] = {{ get_param(param, 'request_info') }}
     {% endfor %}
 
     q = {{ interface.name | capitalize }}.update(**fields).where({{ interface.name | capitalize }}.uid == uid)

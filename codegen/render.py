@@ -16,8 +16,11 @@ env.filters['format_value'] = format_value
 env.filters['format_param_type'] = format_param_type
 env.filters['format_model_type'] = format_model_type
 env.filters['get_model_field'] = get_model_field
+env.filters['get_field'] = get_field
 env.filters['split'] = split
 env.filters['index'] = index
+env.filters['startswith'] = startswith
+env.filters['endswith'] = endswith
 
 
 def render(source, destination, **context):

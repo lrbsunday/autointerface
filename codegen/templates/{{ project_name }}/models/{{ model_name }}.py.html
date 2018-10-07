@@ -4,17 +4,11 @@
     {# 默认值 #}
     {% set arg_list = [] %}
     {% for key, value in field.items() %}
-        {% if value == None %}
-            {% continue %}
-        {% endif %}
         {% if key == 'foreign' %}
             {% do arg_list.append(project.model_mapping[value].name | capitalize) %}
         {% endif %}
     {% endfor %}
     {% for key, value in field.items() %}
-        {% if value == None %}
-            {% continue %}
-        {% endif %}
         {% if key == 'foreign' %}
             {% continue %}
         {% endif %}

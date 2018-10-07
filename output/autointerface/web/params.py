@@ -24,10 +24,11 @@ def create_params():
         "max": tools.get_params(request_info, 'max', need=False, vtype=int),
         "vtype": tools.get_params(request_info, 'vtype', need=False, vtype=str),
         "choices": tools.get_params(request_info, 'choices', need=False, vtype=list),
-        "function": tools.get_params(request_info, 'function', need=False, default='normal', choices=['normal', 'filter', 'sort', 'page'], vtype=str),
+        "function": tools.get_params(request_info, 'function', need=False, default='normal', vtype=str, choices=['normal', 'filter', 'sort', 'page']),
         "filter_op": tools.get_params(request_info, 'filter_op', need=False, vtype=str),
         "filter_condition": tools.get_params(request_info, 'filter_condition', need=False, vtype=str),
         "interface_id": tools.get_params(request_info, 'interface_id', need=True, vtype=int),
+        "field_id": tools.get_params(request_info, 'field_id', need=False, vtype=int),
     }
 
     try:
