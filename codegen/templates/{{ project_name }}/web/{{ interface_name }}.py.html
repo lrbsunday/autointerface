@@ -111,6 +111,9 @@ def get_{{ interface.name }}():
     {% if interface.backref is defined %}
         {% do arg_list.append('backrefs=' ~ interface.backref | format_value) %}
     {% endif %}
+    {% if interface.max_depth is defined %}
+        {% do arg_list.append('max_depth=' ~ interface.max_depth | format_value) %}
+    {% endif %}
 
     return {
         "{{ interface.name }}": [model_to_dict({{ arg_list | join(', ') }}) for row in rows],
@@ -135,6 +138,9 @@ def get_one_{{ interface.name }}(uid):
     {% endif %}
     {% if interface.backref is defined %}
         {% do arg_list.append('backrefs=' ~ interface.backref | format_value) %}
+    {% endif %}
+    {% if interface.max_depth is defined %}
+        {% do arg_list.append('max_depth=' ~ interface.max_depth | format_value) %}
     {% endif %}
     return model_to_dict({{ arg_list | join(', ') }})
 {% endif %}

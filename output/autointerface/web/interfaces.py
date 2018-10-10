@@ -49,7 +49,7 @@ def get_one_interfaces(uid):
     except DoesNotExist:
         raise exceptions.ResourceNotFound(detail="接口%s不存在" % uid)
 
-    return model_to_dict(row, recurse=True, backrefs=True)
+    return model_to_dict(row, recurse=True, backrefs=True, max_depth=1)
 
 
 @interfaces_blueprint.route('/interfaces/<string:uid>', methods=['DELETE'])
@@ -96,6 +96,9 @@ def create_or_update_interfaces(uid):
     if "backref" in request_info:
         fields["backref"] = tools.get_params(
             request_info, 'backref', need=False, vtype=bool)
+    if "max_depth" in request_info:
+        fields["max_depth"] = tools.get_params(
+            request_info, 'max_depth', need=False, default=0, vtype=int)
 
     q = Interfaces.update(**fields).where(Interfaces.uid == uid)
     try:
@@ -163,6 +166,6 @@ def get_interfaces():
     rows = rows.paginate(page=p, paginate_by=s)
 
     return {
-        "interfaces": [model_to_dict(row, recurse=True, backrefs=True) for row in rows],
+        "interfaces": [model_to_dict(row, recurse=True, backrefs=True, max_depth=1) for row in rows],
         "total": count_result.get().total
     }

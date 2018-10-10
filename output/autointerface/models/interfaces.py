@@ -18,3 +18,5 @@ class Interfaces(MyModel):
                            null=True, unique=False, index=False)
     backref = BooleanField(help_text='返回被作为外键的对象列表，仅对查询类接口有',
                            null=True, unique=False, index=False)
+    max_depth = IntegerField(help_text='查询的递归深度，默认为0，表示查询外键对象',
+                             default=0, null=False, unique=False, index=False)

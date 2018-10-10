@@ -13,7 +13,7 @@ done 11. 从接口配置自动判断接口依赖
 done 12. 模型支持json数据类型
 todo 13. 调研github rebase，可以扩展自动生成的代码，并在配置更新时，快速更新自动生成的代码
 done 14. 表结构变化时的数据迁移
-todo 15. 增加递归深度字段max_depth
+done 15. 增加递归深度字段max_depth，默认为0
          备注：model_to_dict性能不佳，应尽量减少递归深度和backref的使用
 todo 16. 控制表结构的字段顺序
 todo 17. 为了结构统一，并且可以使用field作为外键，uid、create_time、update_time不能自动生成，需要配置
