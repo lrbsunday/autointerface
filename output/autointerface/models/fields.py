@@ -6,8 +6,8 @@ from autointerface.models.models import Models
 
 class Fields(MyModel):
     name = CharField(help_text='', null=False, unique=False, index=False)
-    description = TextField(help_text='', default='',
-                            null=False, unique=False, index=False)
+    description = TextField(help_text='', null=False,
+                            unique=False, index=False)
     default = JSONField(help_text='', null=True, unique=False, index=False)
     type = CharField(help_text='', null=False, unique=False, index=False)
     null = BooleanField(help_text='', default=False,

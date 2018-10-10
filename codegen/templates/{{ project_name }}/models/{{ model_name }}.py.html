@@ -36,7 +36,7 @@
     {% endif %}
     {# 代码 #}
     {{ field['name'] }} = {{ field_type }}({{ arg_list | join(', ') }})
-{% endmacro %}
+{%- endmacro %}
 
 from peewee import *
 from . import *
@@ -47,5 +47,5 @@ from {{ project.name }}.models.{{ require }} import {{ require | capitalize }}
 
 class {{ model.name | capitalize }}(MyModel):
     {% for field in model.fields %}
-        {{- define_model_field(field, model, project) -}}
+        {{ define_model_field(field, model, project) }}
     {% endfor %}

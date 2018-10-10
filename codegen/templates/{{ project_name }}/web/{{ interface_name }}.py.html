@@ -1,4 +1,4 @@
-{% macro get_param(param, source) -%}
+{% macro get_param(param, source) %}
     {% set arg_list = [source, '\'' ~ param['name'] ~ '\''] %}
     {% for key, value in param.items() %}
         {% if key == 'default' %}
@@ -23,21 +23,21 @@
     tools.get_params({{ arg_list | join(', ') }})
 {%- endmacro %}
 
-{% macro get_filter_condition(param, interface) -%}
+{% macro get_filter_condition(param, interface) %}
     {% if param.filter_op %}
-        {%- if param.filter_op | startswith(".") %}
+        {% if param.filter_op | startswith(".") %}
         {{ param | get_model_field(interface.name | capitalize) }}{{ param.filter_op }}({{ param['name'] }})
         {%- else %}
         {{ param | get_model_field(interface.name | capitalize) }} {{ param.filter_op }} {{ param['name'] }}
         {%- endif %}
-    {%- elif param.filter_condition %}
+    {% elif param.filter_condition %}
         {{ param.filter_condition }}
     {%- else %}
         {{ param | get_model_field(interface.name | capitalize) }} == {{ param['name'] }}
     {%- endif %}
-{%- endmacro %}
+{% endmacro %}
 
-{% macro interface_param(param, interface, source) %}
+{% macro interface_param(param, interface, source) -%}
     {{ param['name'] }} = {{ get_param(param, source) }}
     {% if param.function == 'filter' %}
     if {{ param['name'] }} is not None:
@@ -50,7 +50,6 @@
         else:
             sort_conditions.append({{ param | get_model_field(interface.name | capitalize) }})
     {% endif %}
-
 {% endmacro %}
 
 from flask import Blueprint, request
@@ -79,7 +78,7 @@ def get_{{ interface.name }}():
     {% set ns.size_param = False %}
     {% set ns.join_list = [] %}
     {% for param in interface.params %}
-        {{- interface_param(param, interface, 'request.args') -}}
+    {{ interface_param(param, interface, 'request.args') }}
         {% if param.function == 'page' %}
             {% set ns.page_param = param.name %}
         {% endif %}
