@@ -139,10 +139,18 @@ def get_interfaces():
 
     s_name = tools.get_params(request.args, 's_name', need=False, vtype=str)
     if s_name is not None:
-        if s_name == 'desc':
-            sort_conditions.append(Interfaces.name.desc())
+        if "," in s_name:
+            order, name = s_name.split(",")
         else:
-            sort_conditions.append(Interfaces.name)
+            order, name = 0, s_name
+        if name == 'desc':
+            sort_conditions.append([
+                int(order), Interfaces.name.desc()
+            ])
+        else:
+            sort_conditions.append([
+                int(order), Interfaces.name
+            ])
 
     project_name = tools.get_params(
         request.args, 'project_name', need=False, vtype=str)
@@ -153,6 +161,22 @@ def get_interfaces():
 
     s = tools.get_params(request.args, 's', need=False, default=10, vtype=int)
 
+    s_method = tools.get_params(
+        request.args, 's_method', need=False, vtype=str)
+    if s_method is not None:
+        if "," in s_method:
+            order, name = s_method.split(",")
+        else:
+            order, name = 0, s_method
+        if name == 'desc':
+            sort_conditions.append([
+                int(order), Interfaces.method.desc()
+            ])
+        else:
+            sort_conditions.append([
+                int(order), Interfaces.method
+            ])
+
     rows = Interfaces.select()
     count_result = Interfaces.select(fn.COUNT(1).alias('total'))
     rows = rows.join(Projects)
@@ -160,12 +184,14 @@ def get_interfaces():
     if filter_conditions:
         rows = rows.where(*filter_conditions)
         count_result = count_result.where(*filter_conditions)
+    sort_conditions = [item[1]
+                       for item in sorted(sort_conditions, key=lambda e: e[0])]
     if sort_conditions:
         rows = rows.order_by(*sort_conditions)
 
     rows = rows.paginate(page=p, paginate_by=s)
 
     return {
-        "interfaces": [model_to_dict(row, recurse=True, backrefs=True, max_depth=1) for row in rows],
+        "interfaces": [model_to_dict(row, recurse=True, backrefs=True, max_depth=0) for row in rows],
         "total": count_result.get().total
     }
