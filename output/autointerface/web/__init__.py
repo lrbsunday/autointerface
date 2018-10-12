@@ -5,7 +5,7 @@ from flask import Flask, request
 from werkzeug.exceptions import MethodNotAllowed
 
 from ..models import database
-from ..common import exceptions
+from ..common import exceptions, tools
 from .projects import projects_blueprint
 from .models import models_blueprint
 from .fields import fields_blueprint
@@ -58,6 +58,12 @@ def path_not_found(_):
 def teardown_request(_):
     if not database.is_closed():
         database.close()
+
+
+@app.route('/_status', methods=['GET'])
+@tools.request_decorator()
+def status():
+    return {"status": True}
 
 
 app.register_blueprint(projects_blueprint, url_prefix='/api/v1')

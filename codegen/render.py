@@ -30,8 +30,9 @@ def render(source, destination, **context):
 
     template = env.get_template(source)
     code = template.render(**context)
-    code = autopep8.fix_code(code,
-                             options={'aggressive': 0,
-                                      'max_line_length': 79})
+    if destination.endswith(".py"):
+        code = autopep8.fix_code(code,
+                                 options={'aggressive': 0,
+                                          'max_line_length': 79})
     with open(destination, "w", encoding="utf-8") as fp:
         fp.write(code)

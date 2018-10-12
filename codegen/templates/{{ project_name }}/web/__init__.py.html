@@ -5,7 +5,7 @@ from flask import Flask, request
 from werkzeug.exceptions import MethodNotAllowed
 
 from ..models import database
-from ..common import exceptions
+from ..common import exceptions, tools
 {% for interface in project.interfaces %}
 from .{{ interface.name }} import {{ interface.name }}_blueprint
 {% endfor %}
@@ -56,6 +56,12 @@ def path_not_found(_):
 def teardown_request(_):
     if not database.is_closed():
         database.close()
+
+
+@app.route('/_status', methods=['GET'])
+@tools.request_decorator()
+def status():
+    return {"status": True}
 
 
 {% for interface in project.interfaces %}

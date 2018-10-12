@@ -8,6 +8,11 @@ from peewee_migrate import Router
 from autointerface import models, config
 
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+
 def backup(name):
     command = """
         mysqldump -t -h %s -P %s -u %s -p %s --password=%s
@@ -20,11 +25,11 @@ def backup(name):
 
 
 @click.group()
-def cli():
+def main():
     pass
 
 
-@cli.command()
+@main.command()
 @click.option('--name', default=None, help='指定迁移脚本名称，否则自动生成')
 def migrate(name):
     router = Router(models.database, ignore=[models.MyModel])
@@ -41,7 +46,7 @@ def migrate(name):
         clean(name, backup_py=True)
 
 
-@cli.command()
+@main.command()
 def rollback():
     try:
         router = Router(models.database, ignore=[models.MyModel])
@@ -66,8 +71,3 @@ def clean(name, backup_py=False):
     command = "rm migrations/{name}.py migrations/{name}.data".format(
         name=name)
     subprocess.Popen(command.split(" ")).wait()
-
-
-cli.add_command(migrate)
-cli.add_command(rollback)
-cli()

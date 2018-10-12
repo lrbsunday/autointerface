@@ -9,9 +9,11 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'migrate=autointerface.scripts.migrate:cli'
+            'migrate=autointerface.scripts.migrate:main',
+            'autointerface=autointerface.scripts.manage:main'
         ]
     },
     install_requires=['peewee', 'flask', 'pymysql', 'click', 'peewee_migrate',
-                      'psycopg2-binary']
+                      'psycopg2-binary', 'fabric', 'configobj', 'uwsgi',
+                      'requests']
 )

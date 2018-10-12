@@ -1,10 +1,5 @@
-class Config(object):
-    env = "DEBUG"
-    dbname = "test"
-    host = "localhost"
-    port = 3306
-    username = "root"
-    password = "lrbsunday"
+import sys
+import os
 
-
-config = Config()
+sys.path.append(os.getcwd())
+import config

@@ -4,3 +4,7 @@ pymysql
 click
 peewee_migrate
 psycopg2-binary
+fabric
+configobj
+uwsgi
+requests
