@@ -2,7 +2,7 @@ import datetime
 import json
 
 from peewee import MySQLDatabase, Model, Field
-from peewee import PrimaryKeyField, DateTimeField
+from peewee import PrimaryKeyField, DateTimeField, IntegerField
 
 from autointerface import config
 
@@ -15,6 +15,7 @@ database = MySQLDatabase(config.dbname,
 
 class MyModel(Model):
     uid = PrimaryKeyField(db_column='uid')
+    version = IntegerField(db_column='version', null=True, default=1)
     create_time = DateTimeField(
         db_column='create_time', default=datetime.datetime.now)
     update_time = DateTimeField(
@@ -25,8 +26,17 @@ class MyModel(Model):
 
     @classmethod
     def update(cls, **update):
+        version = None
+        if 'version' in update:
+            version = update['version']
         update['update_time'] = datetime.datetime.now()
-        return super(MyModel, cls).update(**update)
+        update['version'] = cls.version + 1
+        q = super(MyModel, cls).update(**update)
+        print(version)
+        if version is None:
+            return q
+        else:
+            return q.where(cls.version == version)
 
 
 class JSONField(Field):

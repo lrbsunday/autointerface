@@ -60,6 +60,15 @@ def load_config(project_id):
                 model_name = param["field"]["model"]["name"]
                 interface_group[interface["name"]]["requires"].append(
                     model_name)
+        if interface["method"] == "PUT":
+            interface["params"].append({
+                "field": None,
+                "name": "version",
+                "need": False,
+                "default": None,
+                "vtype": "integer",
+                "function": "normal"
+            })
     project["interfaces"] = list(interface_group.values())
 
     # 过滤None值

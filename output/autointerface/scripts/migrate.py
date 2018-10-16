@@ -1,6 +1,7 @@
 """ 表结构发生变化时，做数据迁移 """
 import subprocess
 import logging
+import sys
 
 import click
 from peewee_migrate import Router

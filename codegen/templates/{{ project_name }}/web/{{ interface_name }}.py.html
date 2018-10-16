@@ -203,7 +203,7 @@ def create_or_update_{{ interface.name }}(uid):
         else:
             raise exceptions.IntegrityError()
     if exec_code == 0:
-        raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在" % uid)
+        raise exceptions.ResourceNotFound(detail="{{ interface.name_cn }}%s不存在或数据版本号错误" % uid)
 
     return {}
 {% endif %}

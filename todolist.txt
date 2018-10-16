@@ -18,7 +18,8 @@ done 15. 增加递归深度字段max_depth，默认为0
 todo 16. 控制表结构的字段顺序
 todo 17. 为了结构统一，并且可以使用field作为外键，uid、create_time、update_time不能自动生成，需要配置
 todo 18. 系统标识符与用户自定义标识符冲突的问题
-
+done 19. 数据版本冲突的检测
+todo 20. 发布失败后的自动回滚
 
 done 传到github
 todo README.md文档

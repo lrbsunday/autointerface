@@ -99,6 +99,9 @@ def create_or_update_interfaces(uid):
     if "max_depth" in request_info:
         fields["max_depth"] = tools.get_params(
             request_info, 'max_depth', need=False, default=0, vtype=int)
+    if "version" in request_info:
+        fields["version"] = tools.get_params(
+            request_info, 'version', need=False, vtype=int)
 
     q = Interfaces.update(**fields).where(Interfaces.uid == uid)
     try:
@@ -112,7 +115,7 @@ def create_or_update_interfaces(uid):
         else:
             raise exceptions.IntegrityError()
     if exec_code == 0:
-        raise exceptions.ResourceNotFound(detail="更新接口%s不存在" % uid)
+        raise exceptions.ResourceNotFound(detail="更新接口%s不存在或数据版本号错误" % uid)
 
     return {}
 
