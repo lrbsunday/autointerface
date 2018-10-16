@@ -41,7 +41,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `migratehistory` WRITE;
 /*!40000 ALTER TABLE `migratehistory` DISABLE KEYS */;
---INSERT INTO `migratehistory` VALUES (1,'001_auto','2018-10-10 09:03:26'),(30,'002_manuel','2018-10-10 11:21:18'),(31,'003_auto','2018-10-10 11:21:43');
+-- INSERT INTO `migratehistory` VALUES (1,'001_auto','2018-10-10 09:03:26'),(30,'002_manuel','2018-10-10 11:21:18'),(31,'003_auto','2018-10-10 11:21:43');
 /*!40000 ALTER TABLE `migratehistory` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -84,4 +84,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-10-10 20:29:16
+-- Dump completed on 2018-10-13  9:34:42

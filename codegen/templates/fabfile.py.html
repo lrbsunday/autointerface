@@ -147,6 +147,42 @@ def deploy(_, env="dev"):
 
 
 @task
+def migrate(_, env="dev"):
+    config = load_config(env)
+    work_dir = config["work_dir"]
+    package_file_name = config["package_file_name"]
+    system_python = config["system_python"]
+    config_file_name = config["config_file_name"]
+
+    connection = Connection(config["host"])
+    connection.config.run.echo = True
+
+    # 表结构的创建或更新
+    with connection.cd(work_dir):
+        with connection.prefix(". venv/bin/activate"):
+            migrate_command = "migrate migrate"
+            connection.run(migrate_command, warn=True)
+
+
+@task
+def rollback(_, env="dev"):
+    config = load_config(env)
+    work_dir = config["work_dir"]
+    package_file_name = config["package_file_name"]
+    system_python = config["system_python"]
+    config_file_name = config["config_file_name"]
+
+    connection = Connection(config["host"])
+    connection.config.run.echo = True
+
+    # 表结构的回滚
+    with connection.cd(work_dir):
+        with connection.prefix(". venv/bin/activate"):
+            rollback_command = "migrate rollback"
+            connection.run(rollback_command, warn=True)
+
+
+@task
 def init(_):
     if os.path.exists("fabric.ini"):
         logging.fatal("fabric.ini已存在，无法生成默认配置")

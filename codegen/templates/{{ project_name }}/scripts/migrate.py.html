@@ -44,6 +44,7 @@ def migrate(name):
     except:
         logging.exception("migrate失败")
         clean(name, backup_py=True)
+        sys.exit(-1)
 
 
 @main.command()
@@ -52,13 +53,15 @@ def rollback():
         router = Router(models.database, ignore=[models.MyModel])
         if not router.done:
             logging.warning("没有migrate记录，无法回滚")
-            return
+            sys.exit(-1)
+
         name = router.done[-1]
         router.rollback(name)
 
         clean(name)
     except:
         logging.exception("rollback失败")
+        sys.exit(-1)
 
 
 def clean(name, backup_py=False):
