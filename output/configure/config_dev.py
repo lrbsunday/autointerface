@@ -1,7 +1,7 @@
 env = "default"
 
-dbname = "au"
+dbname = "test"
 host = "localhost"
-port = 3306
+port = 3307
 username = "root"
-password = "123456"
+password = "lrbsunday"
