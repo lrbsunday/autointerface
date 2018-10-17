@@ -64,7 +64,7 @@ def load_config(project_id):
             interface["params"].append({
                 "field": None,
                 "name": "version",
-                "need": False,
+                "need": True,
                 "default": None,
                 "vtype": "integer",
                 "function": "normal"

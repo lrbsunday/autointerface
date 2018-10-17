@@ -16,11 +16,18 @@ done 14. 表结构变化时的数据迁移
 done 15. 增加递归深度字段max_depth，默认为0
          备注：model_to_dict性能不佳，应尽量减少递归深度和backref的使用
 todo 16. 控制表结构的字段顺序
+         1. 增加i字段，表示顺序号，0, 1 * 1000000, 2 * 1000000, ..., 2000 * 1000000。最多2000个
+         2. log2(1000000) = 20，大概可以调整20次
+         3. 如果要把a放到b、c之间，就让ia = (ib + ic) / 2
+         4. 如果ia==ib或ia==ic，按调整后的次序，重新生成倍数序号
 todo 17. 为了结构统一，并且可以使用field作为外键，uid、create_time、update_time不能自动生成，需要配置
 todo 18. 系统标识符与用户自定义标识符冲突的问题
-done 19. 更新数据时，版本冲突的检测
+done 19. 更新数据时，版本冲突的检测，PUT请求中version是必填项
 todo 20. 发布失败后的自动回滚
 
 done 传到github
 todo README.md文档
 todo 打包并上传到pypi
+
+command:
+python scripts/selfgen.py && cd output && fab init && fab migrate --env=default && fab deploy --env=default && cd -

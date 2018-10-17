@@ -101,7 +101,7 @@ def create_or_update_interfaces(uid):
             request_info, 'max_depth', need=False, default=0, vtype=int)
     if "version" in request_info:
         fields["version"] = tools.get_params(
-            request_info, 'version', need=False, vtype=int)
+            request_info, 'version', need=True, vtype=int)
 
     q = Interfaces.update(**fields).where(Interfaces.uid == uid)
     try:
